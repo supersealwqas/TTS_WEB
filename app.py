@@ -113,6 +113,55 @@ def tts_design():
         return jsonify({"error": str(e)}), 500
 
 
+ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav"}
+MIME_MAP = {".mp3": "audio/mpeg", ".wav": "audio/wav"}
+
+
+@app.route("/api/tts/clone", methods=["POST"])
+def tts_clone():
+    audio_file = request.files.get("audio_file")
+    text = request.form.get("text", "").strip()
+    style_prompt = request.form.get("style_prompt", "").strip()
+    api_key = request.form.get("api_key", "").strip() or DEFAULT_API_KEY
+
+    if not audio_file:
+        return jsonify({"error": "audio_file is required"}), 400
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+
+    ext = Path(audio_file.filename).suffix.lower()
+    if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        return jsonify({"error": f"Unsupported format: {ext}. Use mp3 or wav."}), 400
+
+    file_bytes = audio_file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:
+        return jsonify({"error": "Audio file too large (max 10MB)"}), 400
+
+    mime = MIME_MAP[ext]
+    b64_audio = base64.b64encode(file_bytes).decode("utf-8")
+    voice_value = f"data:{mime};base64,{b64_audio}"
+
+    messages = [{"role": "user", "content": style_prompt}]
+    messages.append({"role": "assistant", "content": text})
+
+    payload = {
+        "model": "mimo-v2.5-tts-voiceclone",
+        "modalities": ["text", "audio"],
+        "audio": {"format": "wav", "voice": voice_value},
+        "messages": messages,
+    }
+
+    try:
+        result = mimo_request(payload, api_key)
+        audio_b64 = result["choices"][0]["message"]["audio"]["data"]
+        return jsonify({"audio": audio_b64})
+    except HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace")
+        return jsonify({"error": f"API error ({e.code}): {error_body}"}), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")

@@ -38,3 +38,29 @@ def test_design_missing_voice_desc(client):
     resp = client.post("/api/tts/design", json={"text": "你好"})
     assert resp.status_code == 400
     assert "voice_desc" in resp.get_json()["error"]
+
+
+import io
+
+
+def test_clone_missing_file(client):
+    resp = client.post("/api/tts/clone", data={"text": "你好"})
+    assert resp.status_code == 400
+    assert "audio_file" in resp.get_json()["error"]
+
+
+def test_clone_missing_text(client):
+    data = {"audio_file": (io.BytesIO(b"fake audio"), "test.wav")}
+    resp = client.post("/api/tts/clone", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 400
+    assert "text" in resp.get_json()["error"]
+
+
+def test_clone_invalid_format(client):
+    data = {
+        "audio_file": (io.BytesIO(b"fake"), "test.txt"),
+        "text": "你好",
+    }
+    resp = client.post("/api/tts/clone", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 400
+    assert "format" in resp.get_json()["error"].lower() or "mp3" in resp.get_json()["error"].lower() or "wav" in resp.get_json()["error"].lower()
