@@ -5,14 +5,17 @@ import json
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
+load_dotenv()
+
 app = Flask(__name__, static_folder="static", static_url_path="")
 
 API_BASE = "https://token-plan-cn.xiaomimimo.com/v1"
-DEFAULT_API_KEY = os.environ.get("MIMO_API_KEY", "tp-c5fbolasp2e1oudhm6fz4niwuqzcakcg55w0xi5gi16ukyr5")
+DEFAULT_API_KEY = os.environ.get("MIMO_API_KEY", "")
 
 
 def get_api_key():
