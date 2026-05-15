@@ -1,0 +1,14 @@
+[project]
+name = "tts-web"
+version = "0.1.0"
+description = "MiMo TTS Web App"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+deploy = [
+    "gunicorn>=22.0",
+]
