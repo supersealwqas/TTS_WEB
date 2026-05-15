@@ -37,6 +37,50 @@ def mimo_request(payload, api_key):
         return json.loads(resp.read())
 
 
+PRESET_VOICES = [
+    "mimo_default", "冰糖", "茉莉", "苏打", "白桦",
+    "Mia", "Chloe", "Milo", "Dean",
+]
+
+
+@app.route("/api/tts/preset", methods=["POST"])
+def tts_preset():
+    data = request.get_json(silent=True) or {}
+    text = data.get("text", "").strip()
+    voice = data.get("voice", "").strip()
+    style_prompt = data.get("style_prompt", "").strip()
+    audio_tag = data.get("audio_tag", "").strip()
+
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    if not voice:
+        return jsonify({"error": "voice is required"}), 400
+    if voice not in PRESET_VOICES:
+        return jsonify({"error": f"Unknown voice: {voice}. Available: {PRESET_VOICES}"}), 400
+
+    assistant_content = f"{audio_tag}{text}" if audio_tag else text
+
+    payload = {
+        "model": "mimo-v2.5-tts",
+        "modalities": ["text", "audio"],
+        "audio": {"voice": voice, "format": "wav"},
+        "messages": [
+            {"role": "user", "content": style_prompt},
+            {"role": "assistant", "content": assistant_content},
+        ],
+    }
+
+    try:
+        result = mimo_request(payload, get_api_key())
+        audio_b64 = result["choices"][0]["message"]["audio"]["data"]
+        return jsonify({"audio": audio_b64})
+    except HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace")
+        return jsonify({"error": f"API error ({e.code}): {error_body}"}), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
