@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiMo TTS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0f0f13;
+  --card: #1a1a24;
+  --border: #2a2a3a;
+  --primary: #6c5ce7;
+  --primary-hover: #7c6cf7;
+  --text: #e8e8f0;
+  --text-dim: #8888a0;
+  --accent: #00cec9;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+textarea {
+  width: 100%;
+  height: 140px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 14px;
+  font-size: 0.95rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+textarea:focus { border-color: var(--primary); }
+
+.char-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  margin-bottom: 20px;
+}
+
+.voice-section { margin-bottom: 24px; }
+
+.voice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.voice-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 10px 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-family: inherit;
+}
+
+.voice-btn:hover { border-color: var(--primary); }
+
+.voice-btn.active {
+  border-color: var(--primary);
+  background: rgba(108, 92, 231, 0.12);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.generate-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.generate-btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-btn.loading {
+  background: var(--border);
+  pointer-events: none;
+}
+
+.player-section {
+  margin-top: 24px;
+  display: none;
+}
+
+.player-section.show { display: block; }
+
+audio {
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  outline: none;
+}
+
+.status {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  min-height: 24px;
+}
+
+.status.error { color: #ff6b6b; }
+.status.success { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>MiMo TTS</h1>
+  <p class="subtitle">文字转语音 · 9种音色</p>
+
+  <div class="card">
+    <label>输入文字</label>
+    <textarea id="text" placeholder="在这里输入要转换的文字..."></textarea>
+    <div class="char-count"><span id="count">0</span> 字</div>
+
+    <div class="voice-section">
+      <label>选择音色</label>
+      <div class="voice-grid" id="voices">
+        <button class="voice-btn active" data-voice="mimo_default">默认</button>
+        <button class="voice-btn" data-voice="冰糖">冰糖</button>
+        <button class="voice-btn" data-voice="茉莉">茉莉</button>
+        <button class="voice-btn" data-voice="苏打">苏打</button>
+        <button class="voice-btn" data-voice="白桦">白桦</button>
+        <button class="voice-btn" data-voice="Mia">Mia</button>
+        <button class="voice-btn" data-voice="Chloe">Chloe</button>
+        <button class="voice-btn" data-voice="Milo">Milo</button>
+        <button class="voice-btn" data-voice="Dean">Dean</button>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generate">生成语音</button>
+
+    <div class="player-section" id="playerSection">
+      <audio id="player" controls></audio>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+const textarea = document.getElementById('text');
+const countEl = document.getElementById('count');
+const voicesEl = document.getElementById('voices');
+const btn = document.getElementById('generate');
+const player = document.getElementById('player');
+const playerSection = document.getElementById('playerSection');
+const statusEl = document.getElementById('status');
+
+let selectedVoice = 'mimo_default';
+
+textarea.addEventListener('input', () => {
+  countEl.textContent = textarea.value.length;
+});
+
+voicesEl.addEventListener('click', (e) => {
+  const b = e.target.closest('.voice-btn');
+  if (!b) return;
+  voicesEl.querySelectorAll('.voice-btn').forEach(v => v.classList.remove('active'));
+  b.classList.add('active');
+  selectedVoice = b.dataset.voice;
+});
+
+btn.addEventListener('click', async () => {
+  const text = textarea.value.trim();
+  if (!text) { setStatus('请输入文字', true); return; }
+
+  btn.classList.add('loading');
+  btn.textContent = '生成中...';
+  btn.disabled = true;
+  playerSection.classList.remove('show');
+  setStatus('正在调用 TTS 接口...');
+
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice: selectedVoice }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '请求失败');
+
+    const audioSrc = 'data:audio/wav;base64,' + data.audio;
+    player.src = audioSrc;
+    playerSection.classList.add('show');
+    player.play();
+    setStatus('生成成功', false, true);
+  } catch (e) {
+    setStatus(e.message, true);
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = '生成语音';
+    btn.disabled = false;
+  }
+});
+
+function setStatus(msg, isError, isSuccess) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status' + (isError ? ' error' : isSuccess ? ' success' : '');
+}
+</script>
+</body>
+</html>

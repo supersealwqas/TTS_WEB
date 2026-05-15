@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiMo TTS - 语音合成</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 640px;
+    padding: 24px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    background: linear-gradient(135deg, #7c6ef0, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .form-group { margin-bottom: 20px; }
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0a0b0;
+    margin-bottom: 8px;
+  }
+  textarea {
+    width: 100%;
+    height: 140px;
+    padding: 14px;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 15px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: #7c6ef0; }
+  .voice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .voice-btn {
+    padding: 12px 8px;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    background: #1a1a2e;
+    color: #c0c0d0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .voice-btn:hover { border-color: #7c6ef0; color: #fff; }
+  .voice-btn.active {
+    border-color: #7c6ef0;
+    background: rgba(124, 110, 240, 0.15);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(124, 110, 240, 0.2);
+  }
+  .generate-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7c6ef0, #4ecdc4);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 8px;
+  }
+  .generate-btn:hover { opacity: 0.9; }
+  .generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .result {
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a3a;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0a0b0;
+    margin-bottom: 12px;
+  }
+  audio {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+    outline: none;
+  }
+  .error {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: rgba(255, 80, 80, 0.1);
+    border: 1px solid rgba(255, 80, 80, 0.3);
+    color: #ff6b6b;
+    font-size: 14px;
+    display: none;
+  }
+  .error.show { display: block; }
+  .char-count {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+  .loading {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .loading.show { display: block; }
+  .spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #2a2a3a;
+    border-top-color: #7c6ef0;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>MiMo TTS</h1>
+
+  <div class="form-group">
+    <label>输入文字</label>
+    <textarea id="text" placeholder="在这里输入要合成的文字..."></textarea>
+    <div class="char-count"><span id="count">0</span> 字</div>
+  </div>
+
+  <div class="form-group">
+    <label>选择音色</label>
+    <div class="voice-grid" id="voices"></div>
+  </div>
+
+  <button class="generate-btn" id="btn" onclick="generate()">生成语音</button>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">正在生成语音，请稍候...</div>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <div class="result-label">生成结果</div>
+    <audio id="audio" controls></audio>
+  </div>
+</div>
+
+<script>
+const VOICES = ["mimo_default", "冰糖", "茉莉", "苏打", "白桦", "Mia", "Chloe", "Milo", "Dean"];
+let selectedVoice = "mimo_default";
+
+const voicesEl = document.getElementById("voices");
+const textEl = document.getElementById("text");
+const countEl = document.getElementById("count");
+const btnEl = document.getElementById("btn");
+const loadingEl = document.getElementById("loading");
+const errorEl = document.getElementById("error");
+const resultEl = document.getElementById("result");
+const audioEl = document.getElementById("audio");
+
+VOICES.forEach(v => {
+  const btn = document.createElement("button");
+  btn.className = "voice-btn" + (v === selectedVoice ? " active" : "");
+  btn.textContent = v;
+  btn.onclick = () => {
+    document.querySelectorAll(".voice-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedVoice = v;
+  };
+  voicesEl.appendChild(btn);
+});
+
+textEl.addEventListener("input", () => {
+  countEl.textContent = textEl.value.length;
+});
+
+async function generate() {
+  const text = textEl.value.trim();
+  if (!text) { showError("请输入文字"); return; }
+
+  hideError();
+  resultEl.classList.remove("show");
+  btnEl.disabled = true;
+  loadingEl.classList.add("show");
+
+  try {
+    const resp = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice: selectedVoice }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Request failed");
+
+    const blob = b64toBlob(data.audio, "audio/wav");
+    audioEl.src = URL.createObjectURL(blob);
+    resultEl.classList.add("show");
+    audioEl.play();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btnEl.disabled = false;
+    loadingEl.classList.remove("show");
+  }
+}
+
+function b64toBlob(b64, type) {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type });
+}
+
+function showError(msg) {
+  errorEl.textContent = msg;
+  errorEl.classList.add("show");
+}
+function hideError() {
+  errorEl.classList.remove("show");
+}
+</script>
+</body>
+</html>
