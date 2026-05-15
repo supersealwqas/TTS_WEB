@@ -22,7 +22,14 @@ def get_api_key():
     """Return user-provided key if present, otherwise the built-in key."""
     data = request.get_json(silent=True) or {}
     key = data.get("api_key", "").strip()
-    return key if key else DEFAULT_API_KEY
+    result = key if key else DEFAULT_API_KEY
+    if not result:
+        raise TTSError("MIMO_API_KEY not set. Please configure the environment variable.")
+    return result
+
+
+class TTSError(Exception):
+    pass
 
 
 def mimo_request(payload, api_key):
