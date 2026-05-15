@@ -147,16 +147,15 @@ h1 {
 /* Tabs */
 .tabs {
   display: flex;
-  gap: 6px;
+  gap: 0;
   margin-bottom: 0;
-  padding: 0 4px;
 }
 
 .tab-btn {
   flex: 1;
   padding: 12px 8px;
-  background: var(--card);
-  border: 2px solid var(--border);
+  background: var(--primary-light);
+  border: 2px solid var(--primary);
   border-bottom: none;
   border-radius: var(--radius) var(--radius) 0 0;
   color: var(--text-muted);
@@ -169,14 +168,15 @@ h1 {
 
 .tab-btn:hover {
   color: var(--primary);
-  background: var(--primary-light);
+  background: var(--secondary);
 }
 
 .tab-btn.active {
   background: var(--card);
   color: var(--primary);
   border-color: var(--primary);
-  box-shadow: 0 -2px 8px rgba(244, 114, 182, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 /* Card */
@@ -187,6 +187,7 @@ h1 {
   padding: 28px;
   border-top: none;
   box-shadow: var(--shadow-outer);
+  position: relative;
 }
 
 /* Tab content */
