@@ -3,261 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MiMo TTS - 语音合成</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #0f0f1a;
-    color: #e0e0e0;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .container {
-    width: 100%;
-    max-width: 640px;
-    padding: 24px;
-  }
-  h1 {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 32px;
-    background: linear-gradient(135deg, #7c6ef0, #4ecdc4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .form-group { margin-bottom: 20px; }
-  label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #a0a0b0;
-    margin-bottom: 8px;
-  }
-  textarea {
-    width: 100%;
-    height: 140px;
-    padding: 14px;
-    border: 1px solid #2a2a3a;
-    border-radius: 12px;
-    background: #1a1a2e;
-    color: #e0e0e0;
-    font-size: 15px;
-    line-height: 1.6;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea:focus { border-color: #7c6ef0; }
-  .voice-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-  .voice-btn {
-    padding: 12px 8px;
-    border: 1px solid #2a2a3a;
-    border-radius: 10px;
-    background: #1a1a2e;
-    color: #c0c0d0;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-  .voice-btn:hover { border-color: #7c6ef0; color: #fff; }
-  .voice-btn.active {
-    border-color: #7c6ef0;
-    background: rgba(124, 110, 240, 0.15);
-    color: #fff;
-    box-shadow: 0 0 12px rgba(124, 110, 240, 0.2);
-  }
-  .generate-btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #7c6ef0, #4ecdc4);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    margin-top: 8px;
-  }
-  .generate-btn:hover { opacity: 0.9; }
-  .generate-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .result {
-    margin-top: 24px;
-    padding: 20px;
-    border-radius: 12px;
-    background: #1a1a2e;
-    border: 1px solid #2a2a3a;
-    display: none;
-  }
-  .result.show { display: block; }
-  .result-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #a0a0b0;
-    margin-bottom: 12px;
-  }
-  audio {
-    width: 100%;
-    height: 48px;
-    border-radius: 8px;
-    outline: none;
-  }
-  .error {
-    margin-top: 16px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: rgba(255, 80, 80, 0.1);
-    border: 1px solid rgba(255, 80, 80, 0.3);
-    color: #ff6b6b;
-    font-size: 14px;
-    display: none;
-  }
-  .error.show { display: block; }
-  .char-count {
-    text-align: right;
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
-  }
-  .loading {
-    display: none;
-    text-align: center;
-    margin-top: 20px;
-  }
-  .loading.show { display: block; }
-  .spinner {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border: 3px solid #2a2a3a;
-    border-top-color: #7c6ef0;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    margin-top: 8px;
-    font-size: 14px;
-    color: #888;
-  }
-</style>
+<title>MiMo TTS</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
   <h1>MiMo TTS</h1>
 
-  <div class="form-group">
-    <label>输入文字</label>
-    <textarea id="text" placeholder="在这里输入要合成的文字..."></textarea>
-    <div class="char-count"><span id="count">0</span> 字</div>
+  <!-- API Key -->
+  <div class="api-key-section">
+    <button class="api-key-toggle" id="apiKeyToggle">API Key 设置</button>
+    <div class="api-key-panel" id="apiKeyPanel">
+      <div class="api-key-row">
+        <input type="password" id="apiKeyInput" placeholder="输入你的 API Key（留空使用默认）">
+        <button class="btn-sm" id="apiKeySave">保存</button>
+        <button class="btn-sm" id="apiKeyReset">恢复默认</button>
+      </div>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label>选择音色</label>
-    <div class="voice-grid" id="voices"></div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="preset">预置音色</button>
+    <button class="tab-btn" data-tab="design">音色设计</button>
+    <button class="tab-btn" data-tab="clone">音色复刻</button>
   </div>
 
-  <button class="generate-btn" id="btn" onclick="generate()">生成语音</button>
+  <div class="card">
+    <!-- Tab 1: Preset -->
+    <div class="tab-content active" id="tab-preset">
+      <div class="input-group">
+        <label>输入文本</label>
+        <textarea id="presetText" placeholder="在这里输入要合成的文字..."></textarea>
+      </div>
 
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <div class="loading-text">正在生成语音，请稍候...</div>
-  </div>
+      <div class="input-group">
+        <label>风格控制 <span class="optional-hint">（可选，自然语言描述）</span></label>
+        <textarea class="small" id="presetStyle" placeholder="例：用温柔的语气，语速稍慢，带着微笑"></textarea>
+      </div>
 
-  <div class="error" id="error"></div>
+      <div class="input-group">
+        <label>音频标签 <span class="optional-hint">（可选）</span></label>
+        <div class="tag-buttons" id="tagButtons">
+          <button class="tag-btn" data-tag="(温柔)">温柔</button>
+          <button class="tag-btn" data-tag="(悲伤)">悲伤</button>
+          <button class="tag-btn" data-tag="(开心)">开心</button>
+          <button class="tag-btn" data-tag="(愤怒)">愤怒</button>
+          <button class="tag-btn" data-tag="(慵懒)">慵懒</button>
+          <button class="tag-btn" data-tag="(磁性)">磁性</button>
+          <button class="tag-btn" data-tag="(紧张)">紧张</button>
+          <button class="tag-btn" data-tag="(叹气)">叹气</button>
+          <button class="tag-btn" data-tag="(笑)">笑</button>
+          <button class="tag-btn" data-tag="(哭泣)">哭泣</button>
+        </div>
+        <input type="text" id="presetTag" placeholder="自定义标签，如 (紧张，深呼吸)" style="
+          width: 100%;
+          padding: 8px 12px;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: var(--text);
+          font-size: 0.85rem;
+          font-family: inherit;
+          outline: none;
+        ">
+      </div>
 
-  <div class="result" id="result">
-    <div class="result-label">生成结果</div>
-    <audio id="audio" controls></audio>
+      <div class="input-group">
+        <label>选择音色</label>
+        <div class="voice-grid" id="voiceGrid">
+          <button class="voice-btn active" data-voice="mimo_default">默认</button>
+          <button class="voice-btn" data-voice="冰糖">冰糖</button>
+          <button class="voice-btn" data-voice="茉莉">茉莉</button>
+          <button class="voice-btn" data-voice="苏打">苏打</button>
+          <button class="voice-btn" data-voice="白桦">白桦</button>
+          <button class="voice-btn" data-voice="Mia">Mia</button>
+          <button class="voice-btn" data-voice="Chloe">Chloe</button>
+          <button class="voice-btn" data-voice="Milo">Milo</button>
+          <button class="voice-btn" data-voice="Dean">Dean</button>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="presetGenerate">生成语音</button>
+      <div class="player-section" id="presetPlayer">
+        <div class="player-row">
+          <audio id="presetAudio" controls></audio>
+          <a class="download-btn" id="presetDownload" download="preset.wav">下载</a>
+        </div>
+      </div>
+      <div class="status" id="presetStatus"></div>
+    </div>
+
+    <!-- Tab 2: Design -->
+    <div class="tab-content" id="tab-design">
+      <div class="input-group">
+        <label>音色描述</label>
+        <textarea id="designDesc" placeholder="描述你想要的音色，例：年轻女性，温柔甜美，语速适中，像在耳边轻声说话"></textarea>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="designOptimize" checked>
+        <label for="designOptimize">智能润色文本（optimize_text_preview）</label>
+      </div>
+
+      <div class="input-group">
+        <label>合成文本 <span class="optional-hint">（开启智能润色时可不填）</span></label>
+        <textarea class="small" id="designText" placeholder="要合成的文本..."></textarea>
+      </div>
+
+      <button class="generate-btn" id="designGenerate">生成语音</button>
+      <div class="player-section" id="designPlayer">
+        <div class="player-row">
+          <audio id="designAudio" controls></audio>
+          <a class="download-btn" id="designDownload" download="design.wav">下载</a>
+        </div>
+      </div>
+      <div class="status" id="designStatus"></div>
+    </div>
+
+    <!-- Tab 3: Clone -->
+    <div class="tab-content" id="tab-clone">
+      <div class="input-group">
+        <label>上传音频样本</label>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">+</div>
+          <div class="upload-text">拖拽文件到此处，或点击选择</div>
+          <div class="upload-hint">支持 mp3、wav，最大 10MB</div>
+        </div>
+        <input type="file" id="cloneFile" accept=".mp3,.wav" style="display:none">
+        <div class="file-info" id="fileInfo">
+          <span class="file-name" id="fileName"></span>
+          <button class="file-remove" id="fileRemove">✕</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>风格控制 <span class="optional-hint">（可选，自然语言描述）</span></label>
+        <textarea class="small" id="cloneStyle" placeholder="例：用欢快的语气，语速稍快"></textarea>
+      </div>
+
+      <div class="input-group">
+        <label>合成文本</label>
+        <textarea id="cloneText" placeholder="要合成的文字..."></textarea>
+      </div>
+
+      <button class="generate-btn" id="cloneGenerate">生成语音</button>
+      <div class="player-section" id="clonePlayer">
+        <div class="player-row">
+          <audio id="cloneAudio" controls></audio>
+          <a class="download-btn" id="cloneDownload" download="clone.wav">下载</a>
+        </div>
+      </div>
+      <div class="status" id="cloneStatus"></div>
+    </div>
   </div>
 </div>
 
-<script>
-const VOICES = ["mimo_default", "冰糖", "茉莉", "苏打", "白桦", "Mia", "Chloe", "Milo", "Dean"];
-let selectedVoice = "mimo_default";
-
-const voicesEl = document.getElementById("voices");
-const textEl = document.getElementById("text");
-const countEl = document.getElementById("count");
-const btnEl = document.getElementById("btn");
-const loadingEl = document.getElementById("loading");
-const errorEl = document.getElementById("error");
-const resultEl = document.getElementById("result");
-const audioEl = document.getElementById("audio");
-
-VOICES.forEach(v => {
-  const btn = document.createElement("button");
-  btn.className = "voice-btn" + (v === selectedVoice ? " active" : "");
-  btn.textContent = v;
-  btn.onclick = () => {
-    document.querySelectorAll(".voice-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    selectedVoice = v;
-  };
-  voicesEl.appendChild(btn);
-});
-
-textEl.addEventListener("input", () => {
-  countEl.textContent = textEl.value.length;
-});
-
-async function generate() {
-  const text = textEl.value.trim();
-  if (!text) { showError("请输入文字"); return; }
-
-  hideError();
-  resultEl.classList.remove("show");
-  btnEl.disabled = true;
-  loadingEl.classList.add("show");
-
-  try {
-    const resp = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voice: selectedVoice }),
-    });
-
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || "Request failed");
-
-    const blob = b64toBlob(data.audio, "audio/wav");
-    audioEl.src = URL.createObjectURL(blob);
-    resultEl.classList.add("show");
-    audioEl.play();
-  } catch (e) {
-    showError(e.message);
-  } finally {
-    btnEl.disabled = false;
-    loadingEl.classList.remove("show");
-  }
-}
-
-function b64toBlob(b64, type) {
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return new Blob([arr], { type });
-}
-
-function showError(msg) {
-  errorEl.textContent = msg;
-  errorEl.classList.add("show");
-}
-function hideError() {
-  errorEl.classList.remove("show");
-}
-</script>
+<script src="app.js"></script>
 </body>
 </html>
