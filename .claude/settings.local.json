@@ -71,7 +71,15 @@
       "PowerShell(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py -v 2>&1)",
       "Bash(.venv/Scripts/python.exe -m pytest test_app.py::test_design_missing_voice_desc -v)",
       "Bash(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py::test_clone_missing_file -v)",
-      "PowerShell(if \\(-not \\(Test-Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\"\\)\\) { New-Item -ItemType Directory -Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\" })"
+      "PowerShell(if \\(-not \\(Test-Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\"\\)\\) { New-Item -ItemType Directory -Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\" })",
+      "Bash(.venv/Scripts/python.exe app.py)",
+      "Bash(curl -s http://localhost:5000)",
+      "Bash(curl -s -X POST http://localhost:5000/api/tts/preset -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -X POST http://localhost:5000/api/tts/design -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -X POST http://localhost:5000/api/tts/clone -F \"text=\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/tts/preset -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/tts/design -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST http://localhost:5000/api/tts/clone -F \"text=\")"
     ]
   }
 }
