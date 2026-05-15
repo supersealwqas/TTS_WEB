@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -11,7 +12,7 @@ from urllib.error import HTTPError
 app = Flask(__name__, static_folder="static", static_url_path="")
 
 API_BASE = "https://token-plan-cn.xiaomimimo.com/v1"
-DEFAULT_API_KEY = "tp-c5fbolasp2e1oudhm6fz4niwuqzcakcg55w0xi5gi16ukyr5"
+DEFAULT_API_KEY = os.environ.get("MIMO_API_KEY", "tp-c5fbolasp2e1oudhm6fz4niwuqzcakcg55w0xi5gi16ukyr5")
 
 
 def get_api_key():
@@ -168,4 +169,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
