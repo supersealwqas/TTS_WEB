@@ -81,6 +81,38 @@ def tts_preset():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/tts/design", methods=["POST"])
+def tts_design():
+    data = request.get_json(silent=True) or {}
+    voice_desc = data.get("voice_desc", "").strip()
+    text = data.get("text", "").strip()
+    optimize_preview = data.get("optimize_preview", True)
+
+    if not voice_desc:
+        return jsonify({"error": "voice_desc is required"}), 400
+
+    messages = [{"role": "user", "content": voice_desc}]
+    if text:
+        messages.append({"role": "assistant", "content": text})
+
+    payload = {
+        "model": "mimo-v2.5-tts-voicedesign",
+        "modalities": ["text", "audio"],
+        "audio": {"format": "wav", "optimize_text_preview": optimize_preview},
+        "messages": messages,
+    }
+
+    try:
+        result = mimo_request(payload, get_api_key())
+        audio_b64 = result["choices"][0]["message"]["audio"]["data"]
+        return jsonify({"audio": audio_b64})
+    except HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace")
+        return jsonify({"error": f"API error ({e.code}): {error_body}"}), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")

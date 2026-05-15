@@ -32,3 +32,9 @@ def test_preset_invalid_voice(client):
     resp = client.post("/api/tts/preset", json={"text": "你好", "voice": "不存在"})
     assert resp.status_code == 400
     assert "voice" in resp.get_json()["error"]
+
+
+def test_design_missing_voice_desc(client):
+    resp = client.post("/api/tts/design", json={"text": "你好"})
+    assert resp.status_code == 400
+    assert "voice_desc" in resp.get_json()["error"]
