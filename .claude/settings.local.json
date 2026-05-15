@@ -54,7 +54,24 @@
       "Read(//c/Users/Superseal/.claude/plugins/cache/superpowers-marketplace/superpowers/5.1.0/skills/subagent-driven-development/**)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(uv venv *)",
+      "Bash(uv pip *)",
+      "Bash(.venv\\\\Scripts\\\\python.exe -c \"import flask; print\\(flask.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import flask; print\\(flask.__version__\\)\")",
+      "Bash(Test-Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\.venv\\\\Scripts\\\\python.exe\")",
+      "PowerShell(& \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\.venv\\\\Scripts\\\\python.exe\" -c \"import flask; print\\(flask.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -m pytest test_app.py -v)",
+      "Bash(.venv/Scripts/pip.exe install *)",
+      "PowerShell(& \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\.venv\\\\Scripts\\\\pip.exe\" install pytest)",
+      "PowerShell(& \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\.venv\\\\Scripts\\\\python.exe\" -m pip install pytest)",
+      "PowerShell(& \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\.venv\\\\Scripts\\\\python.exe\" -m ensurepip 2>&1)",
+      "Bash(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py::test_preset_missing_text -v)",
+      "PowerShell(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py::test_preset_missing_text -v 2>&1)",
+      "PowerShell(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py -v 2>&1)",
+      "Bash(.venv/Scripts/python.exe -m pytest test_app.py::test_design_missing_voice_desc -v)",
+      "Bash(.venv\\\\Scripts\\\\python.exe -m pytest test_app.py::test_clone_missing_file -v)",
+      "PowerShell(if \\(-not \\(Test-Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\"\\)\\) { New-Item -ItemType Directory -Path \"D:\\\\AI\\\\my_AI_project\\\\tts_web\\\\static\" })"
     ]
   }
 }
